@@ -81,7 +81,7 @@ def enviar_correo(destinatario, datos):
         smtp.login(EMAIL_REMITENTE, CLAVE_APP)
         smtp.send_message(mensaje)
 
-# Validar campos
+# Validar
 def validar(campos):
     errores = []
     anio_actual = datetime.now().year
@@ -110,7 +110,7 @@ def formulario(tipo):
     st.markdown(f"<h2 style='text-align:center;'>Formulario {tipo}</h2>", unsafe_allow_html=True)
     st.markdown("---")
     if st.button("← Volver al inicio"):
-        st.session_state['pantalla'] = 'inicio'
+        st.session_state['cambio_pantalla'] = 'inicio'
         st.experimental_rerun()
 
     nombre = st.text_input("Nombre del fallecido")
@@ -144,17 +144,24 @@ def formulario(tipo):
             guardar_en_excel("datos_jamasolvidad.xlsx", campos)
             enviar_correo(email, campos)
             st.session_state['mensaje_exito'] = True
-            st.session_state['pantalla'] = 'inicio'
-            st.success("✅ ¡Formulario enviado con éxito!")
-            st.stop()
+            st.session_state['cambio_pantalla'] = 'inicio'
+            st.experimental_rerun()
 
-# Interfaz principal
+# Manejo de estado seguro
 if 'pantalla' not in st.session_state:
     st.session_state['pantalla'] = 'inicio'
-
 if 'mensaje_exito' not in st.session_state:
     st.session_state['mensaje_exito'] = False
+if 'cambio_pantalla' not in st.session_state:
+    st.session_state['cambio_pantalla'] = None
 
+# Cambiar de pantalla si se solicitó
+if st.session_state['cambio_pantalla']:
+    st.session_state['pantalla'] = st.session_state['cambio_pantalla']
+    st.session_state['cambio_pantalla'] = None
+    st.experimental_rerun()
+
+# Interfaz principal
 if st.session_state['pantalla'] == 'inicio':
     st.set_page_config(layout="centered")
     st.markdown("<h1 style='text-align: center;'>Jamasolvidad</h1>", unsafe_allow_html=True)
@@ -192,10 +199,10 @@ if st.session_state['pantalla'] == 'inicio':
 
     st.markdown("---")
     if st.button("Formulario Funeraria"):
-        st.session_state['pantalla'] = "Funeraria"
+        st.session_state['cambio_pantalla'] = "Funeraria"
         st.experimental_rerun()
     if st.button("Formulario Cementerio"):
-        st.session_state['pantalla'] = "Cementerio"
+        st.session_state['cambio_pantalla'] = "Cementerio"
         st.experimental_rerun()
     if st.button("Salir"):
         st.markdown("<h3 style='text-align:center;'>Gracias por visitarnos.</h3>", unsafe_allow_html=True)
