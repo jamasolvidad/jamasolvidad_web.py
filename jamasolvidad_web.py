@@ -143,7 +143,7 @@ def formulario(tipo):
         else:
             guardar_en_excel("datos_jamasolvidad.xlsx", campos)
             enviar_correo(email, campos)
-            st.success("Gracias por tu solicitud. Pronto nos pondremos en contacto.")
+            st.session_state['mensaje_exito'] = True
             st.session_state['pantalla'] = 'inicio'
             st.experimental_rerun()
 
@@ -151,12 +151,17 @@ def formulario(tipo):
 if 'pantalla' not in st.session_state:
     st.session_state['pantalla'] = 'inicio'
 
+if 'mensaje_exito' not in st.session_state:
+    st.session_state['mensaje_exito'] = False
+
 if st.session_state['pantalla'] == 'inicio':
     st.set_page_config(layout="centered")
     st.markdown("<h1 style='text-align: center;'>Jamasolvidad</h1>", unsafe_allow_html=True)
-    st.image("foto jamasolvidad.jpg", use_container_width=True)
 
-    # Mostrar miniatura del video con overlay de botón play
+    if st.session_state.get('mensaje_exito'):
+        st.success("✅ Tu solicitud fue enviada exitosamente. Nos pondremos en contacto pronto.")
+        st.session_state['mensaje_exito'] = False
+
     with open("video_thumbnail.jpg", "rb") as f:
         img_base64 = b64encode(f.read()).decode()
 
