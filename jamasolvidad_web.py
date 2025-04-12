@@ -30,7 +30,7 @@ def enviar_correo(destinatario, datos):
     mensaje["From"] = EMAIL_REMITENTE
     mensaje["To"] = destinatario
 
-    with open("Imagen de WhatsApp 2025-04-12 a las 09.39.13_4bc7b541.jpg", "rb") as f:
+    with open("logo_jamasolvidad.jpg", "rb") as f:
         logo_base64 = b64encode(f.read()).decode()
 
     cuerpo = f"""
@@ -157,7 +157,7 @@ if st.session_state['pantalla'] == 'inicio':
     st.image("foto jamasolvidad.jpg", use_container_width=True)
 
     # Mostrar miniatura del video con overlay de botón play
-    with open("Imagen de WhatsApp 2025-04-12 a las 09.39.13_8566a0aa.jpg", "rb") as f:
+    with open("video_thumbnail.jpg", "rb") as f:
         img_base64 = b64encode(f.read()).decode()
 
     st.markdown(f"""
