@@ -111,7 +111,7 @@ def formulario(tipo):
     st.markdown("---")
     if st.button("← Volver al inicio"):
         st.session_state['pantalla'] = 'inicio'
-        st.experimental_rerun()
+        st.rerun()
 
     nombre = st.text_input("Nombre del fallecido")
     nacimiento = st.text_input("Año de nacimiento")
@@ -145,7 +145,7 @@ def formulario(tipo):
             enviar_correo(email, campos)
             st.session_state['mensaje_exito'] = True
             st.session_state['pantalla'] = 'inicio'
-            st.experimental_rerun()
+            st.rerun()
 
 # Interfaz principal
 if 'pantalla' not in st.session_state:
@@ -162,27 +162,39 @@ if st.session_state['pantalla'] == 'inicio':
         st.success("✅ Tu solicitud fue enviada exitosamente. Nos pondremos en contacto pronto.")
         st.session_state['mensaje_exito'] = False
 
+    # Mostrar logo
+    with open("logo_jamasolvidad.jpg", "rb") as f:
+        logo_base64 = b64encode(f.read()).decode()
+    st.markdown(f"""
+        <div style="text-align:center;">
+            <img src="data:image/jpeg;base64,{logo_base64}" style="height: 100px;">
+        </div>
+    """, unsafe_allow_html=True)
+
+    # Miniatura del video con botón de reproducción
     with open("video_thumbnail.jpg", "rb") as f:
         img_base64 = b64encode(f.read()).decode()
 
     st.markdown(f"""
-    <div style="position: relative; display: inline-block; cursor: pointer;" onclick="window.open('https://drive.google.com/file/d/1HWSGTcwaczETPg3luz7rGzcDwtYAJmZw/view?usp=drive_link', '_blank')">
-        <img src="data:image/jpeg;base64,{img_base64}" style="width: 100%; border-radius: 10px;">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/YouTube_play_button_icon_%282013-2017%29.svg" style="position: absolute; top: 50%; left: 50%; width: 60px; transform: translate(-50%, -50%); opacity: 0.8;">
-    </div>
+    <a href="https://drive.google.com/file/d/1HWSGTcwaczETPg3luz7rGzcDwtYAJmZw/view?usp=sharing" target="_blank" style="text-decoration: none;">
+        <div style="position: relative; display: inline-block; width: 100%;">
+            <img src="data:image/jpeg;base64,{img_base64}" style="width: 100%; border-radius: 10px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/YouTube_play_button_icon_%282013-2017%29.svg"
+                 style="position: absolute; top: 50%; left: 50%; width: 60px; transform: translate(-50%, -50%); opacity: 0.8;">
+        </div>
+    </a>
     """, unsafe_allow_html=True)
 
     st.markdown("---")
     if st.button("Formulario Funeraria"):
         st.session_state['pantalla'] = "Funeraria"
-        st.experimental_rerun()
+        st.rerun()
     if st.button("Formulario Cementerio"):
         st.session_state['pantalla'] = "Cementerio"
-        st.experimental_rerun()
-
+        st.rerun()
     if st.button("Salir"):
         st.session_state['pantalla'] = 'salir'
-        st.experimental_rerun()
+        st.rerun()
 
 elif st.session_state['pantalla'] in ["Funeraria", "Cementerio"]:
     formulario(st.session_state['pantalla'])
