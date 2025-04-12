@@ -104,14 +104,39 @@ def validar(campos):
 
     return errores
 
-# Formulario genérico
-def formulario(tipo):
-    st.set_page_config(layout="centered")
-    st.markdown(f"<h2 style='text-align:center;'>Formulario {tipo}</h2>", unsafe_allow_html=True)
+# Pantalla de inicio
+st.set_page_config(layout="centered")
+
+# Mostrar logo
+with open("logo_jamasolvidad.jpg", "rb") as f:
+    logo_base64 = b64encode(f.read()).decode()
+st.markdown(f"""
+    <div style="text-align:center;">
+        <img src="data:image/jpeg;base64,{logo_base64}" style="height: 100px;">
+    </div>
+""", unsafe_allow_html=True)
+
+# Miniatura del video con botón de reproducción
+with open("video_thumbnail.jpg", "rb") as f:
+    img_base64 = b64encode(f.read()).decode()
+
+st.markdown(f"""
+<div style="text-align:center;">
+    <a href="https://drive.google.com/file/d/1HWSGTcwaczETPg3luz7rGzcDwtYAJmZw/view?usp=sharing" target="_blank" style="position: relative; display: inline-block;">
+        <img src="data:image/jpeg;base64,{img_base64}" style="width: 100%; max-width: 400px; border-radius: 12px;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/YouTube_play_button_icon_%282013-2017%29.svg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 64px; opacity: 0.8;">
+    </a>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("---")
+
+# Botones para mostrar formularios
+formulario_elegido = st.radio("Selecciona el formulario:", ("Funeraria", "Cementerio"))
+if st.button("Abrir formulario"):
+    tipo = formulario_elegido
     st.markdown("---")
-    if st.button("← Volver al inicio"):
-        st.session_state['cambio_pantalla'] = 'inicio'
-        st.experimental_rerun()
+    st.header(f"Formulario {tipo}")
 
     nombre = st.text_input("Nombre del fallecido")
     nacimiento = st.text_input("Año de nacimiento")
@@ -143,69 +168,4 @@ def formulario(tipo):
         else:
             guardar_en_excel("datos_jamasolvidad.xlsx", campos)
             enviar_correo(email, campos)
-            st.session_state['mensaje_exito'] = True
-            st.session_state['cambio_pantalla'] = 'inicio'
-            st.experimental_rerun()
-
-# Manejo de estado seguro
-if 'pantalla' not in st.session_state:
-    st.session_state['pantalla'] = 'inicio'
-if 'mensaje_exito' not in st.session_state:
-    st.session_state['mensaje_exito'] = False
-if 'cambio_pantalla' not in st.session_state:
-    st.session_state['cambio_pantalla'] = None
-
-# Cambiar de pantalla si se solicitó
-if st.session_state['cambio_pantalla']:
-    st.session_state['pantalla'] = st.session_state['cambio_pantalla']
-    st.session_state['cambio_pantalla'] = None
-    st.experimental_rerun()
-
-# Interfaz principal
-if st.session_state['pantalla'] == 'inicio':
-    st.set_page_config(layout="centered")
-    st.markdown("<h1 style='text-align: center;'>Jamasolvidad</h1>", unsafe_allow_html=True)
-
-    if st.session_state.get('mensaje_exito'):
-        st.markdown("""
-        <div style="background-color: #d4edda; padding: 20px; border-radius: 10px; border: 1px solid #c3e6cb; text-align: center;">
-            <h3 style="color: #155724;">✅ ¡Tu solicitud fue enviada exitosamente!</h3>
-            <p style="color: #155724;">Gracias por confiar en nosotros. Pronto nos pondremos en contacto contigo.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        st.session_state['mensaje_exito'] = False
-
-    # Mostrar logo
-    with open("logo_jamasolvidad.jpg", "rb") as f:
-        logo_base64 = b64encode(f.read()).decode()
-    st.markdown(f"""
-        <div style="text-align:center;">
-            <img src="data:image/jpeg;base64,{logo_base64}" style="height: 100px;">
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Miniatura del video con botón de reproducción
-    with open("video_thumbnail.jpg", "rb") as f:
-        img_base64 = b64encode(f.read()).decode()
-
-    st.markdown(f"""
-    <div style="text-align:center;">
-        <a href="https://drive.google.com/file/d/1HWSGTcwaczETPg3luz7rGzcDwtYAJmZw/view?usp=sharing" target="_blank" style="position: relative; display: inline-block;">
-            <img src="data:image/jpeg;base64,{img_base64}" style="width: 100%; max-width: 400px; border-radius: 12px;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/YouTube_play_button_icon_%282013-2017%29.svg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 64px; opacity: 0.8;">
-        </a>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("---")
-    if st.button("Formulario Funeraria"):
-        st.session_state['cambio_pantalla'] = "Funeraria"
-        st.experimental_rerun()
-    if st.button("Formulario Cementerio"):
-        st.session_state['cambio_pantalla'] = "Cementerio"
-        st.experimental_rerun()
-    if st.button("Salir"):
-        st.markdown("<h3 style='text-align:center;'>Gracias por visitarnos.</h3>", unsafe_allow_html=True)
-
-elif st.session_state['pantalla'] in ["Funeraria", "Cementerio"]:
-    formulario(st.session_state['pantalla'])
+            st.success("✅ ¡Tu solicitud fue enviada exitosamente! Gracias por confiar en nosotros. Pronto nos pondremos en contacto contigo.")
