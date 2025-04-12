@@ -5,7 +5,8 @@ from email.message import EmailMessage
 from datetime import datetime
 import os
 import re
-from PIL import Image, ImageDraw
+from PIL import Image
+from base64 import b64encode
 
 EMAIL_REMITENTE = "jamasolvidad@gmail.com"
 CLAVE_APP = "upvucofjunwdstid"
@@ -29,32 +30,47 @@ def enviar_correo(destinatario, datos):
     mensaje["From"] = EMAIL_REMITENTE
     mensaje["To"] = destinatario
 
+    with open("Imagen de WhatsApp 2025-04-12 a las 09.39.13_4bc7b541.jpg", "rb") as f:
+        logo_base64 = b64encode(f.read()).decode()
+
     cuerpo = f"""
     <html>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <h2 style="color: #2c3e50;">Gracias por tu solicitud - Jamasolvidad</h2>
-        <p>Gracias por elegir nuestro servicio para honrar la memoria de tu ser querido. Estamos comprometidos a ayudarte a preservar su legado de una manera única y emotiva.</p>
-        <h3>Paso a paso:</h3>
-        <ol>
-            <li><strong>Recopilación de Contenido:</strong> Envíanos las fotos, videos y textos que deseas incluir en el código QR.</li>
-            <li><strong>Diseño y Personalización:</strong> Nos encargaremos de crear un espacio digital seguro y accesible.</li>
-            <li><strong>Instalación del Código QR:</strong> Una vez listo, te contactaremos para coordinar la instalación en la lápida.</li>
-        </ol>
-        <p><strong>Información importante:</strong><br>
-        • El código QR es duradero y resistente a las condiciones climáticas.<br>
-        • Te proporcionaremos un enlace de acceso privado para que gestiones los contenidos.</p>
+    <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; background-color: #f9f9f9; padding: 20px;">
+        <div style="max-width: 600px; margin: auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+            <div style="text-align: center;">
+                <img src="data:image/jpeg;base64,{logo_base64}" alt="Jamasolvidad" style="max-height: 100px; margin-bottom: 20px;"/>
+            </div>
+            <h2 style="color: #1a1a1a;">🌟 Gracias por tu solicitud - <span style="color: #5e60ce;">Jamasolvidad</span></h2>
+            <p>Hola,</p>
+            <p>Gracias por confiar en <strong>Jamasolvidad</strong> para rendir homenaje a tu ser querido. Estamos comprometidos a ayudarte a mantener viva su memoria de una forma emotiva y respetuosa.</p>
+            
+            <h3 style="color: #5e60ce;">🛠️ ¿Qué sigue?</h3>
+            <ul>
+                <li>✔️ <strong>Envíanos</strong> fotos, videos y textos para el homenaje.</li>
+                <li>✔️ <strong>Diseñamos</strong> un espacio digital único y seguro.</li>
+                <li>✔️ <strong>Instalamos</strong> el código QR en la lápida o recuerdo.</li>
+            </ul>
 
-        <p><strong>Enviar material para el video al WhatsApp:</strong> 3053629015<br>
-        <strong>O al correo:</strong> jamasolvidad@gmail.com</p>
+            <p style="background-color: #f1f1f1; padding: 10px; border-radius: 6px;">
+                <strong>📌 Importante:</strong><br>
+                • El código QR es duradero y resistente al clima.<br>
+                • Recibirás un enlace privado para gestionar el contenido.
+            </p>
 
-        <h3>Datos del formulario:</h3>
-        <ul>
+            <p>📲 Puedes enviar el material por <strong>WhatsApp</strong> al <a href="https://wa.me/573053629015">305 362 9015</a><br>
+            o al correo: <strong>jamasolvidad@gmail.com</strong></p>
+
+            <h3 style="color: #5e60ce;">📋 Información del formulario:</h3>
+            <ul>
     """
     for campo, valor in datos.items():
         cuerpo += f"<li><strong>{campo}:</strong> {valor}</li>"
 
     cuerpo += """
-        </ul>
+            </ul>
+            <p style="text-align:center; margin-top:30px;">💜 Gracias por permitirnos hacer parte de este homenaje.</p>
+            <p style="text-align:center;">Equipo <strong>Jamasolvidad</strong></p>
+        </div>
     </body>
     </html>
     """
@@ -140,23 +156,15 @@ if st.session_state['pantalla'] == 'inicio':
     st.markdown("<h1 style='text-align: center;'>Jamasolvidad</h1>", unsafe_allow_html=True)
     st.image("foto jamasolvidad.jpg", use_container_width=True)
 
-    # Imagen con botón de reproducción dibujado
-    img = Image.open("Gemini_Generated_Image_62yjfv62yjfv62yj (1).jpg").copy()
-    draw = ImageDraw.Draw(img)
-    x, y, r = img.width // 2, img.height // 2, 30
-    draw.polygon([(x - r, y - r), (x - r, y + r), (x + r, y)], fill="red")
+    # Mostrar miniatura del video con overlay de botón play
+    with open("Imagen de WhatsApp 2025-04-12 a las 09.39.13_8566a0aa.jpg", "rb") as f:
+        img_base64 = b64encode(f.read()).decode()
 
-    st.image(img, use_container_width=True)
-    st.markdown("""
-    <script>
-    const imgs = window.parent.document.querySelectorAll('img');
-    imgs.forEach(img => {
-        if(img.src.includes("Gemini_Generated")) {
-            img.style.cursor = 'pointer';
-            img.onclick = () => window.open("https://drive.google.com/file/d/1HWSGTcwaczETPg3luz7rGzcDwtYAJmZw/view?usp=drive_link", "_blank");
-        }
-    });
-    </script>
+    st.markdown(f"""
+    <div style="position: relative; display: inline-block; cursor: pointer;" onclick="window.open('https://drive.google.com/file/d/1HWSGTcwaczETPg3luz7rGzcDwtYAJmZw/view?usp=drive_link', '_blank')">
+        <img src="data:image/jpeg;base64,{img_base64}" style="width: 100%; border-radius: 10px;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/YouTube_play_button_icon_%282013-2017%29.svg" style="position: absolute; top: 50%; left: 50%; width: 60px; transform: translate(-50%, -50%); opacity: 0.8;">
+    </div>
     """, unsafe_allow_html=True)
 
     st.markdown("---")
