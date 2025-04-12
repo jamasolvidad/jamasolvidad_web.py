@@ -43,23 +43,19 @@ def enviar_correo(destinatario, datos):
             <h2 style="color: #1a1a1a;">🌟 Gracias por tu solicitud - <span style="color: #5e60ce;">Jamasolvidad</span></h2>
             <p>Hola,</p>
             <p>Gracias por confiar en <strong>Jamasolvidad</strong> para rendir homenaje a tu ser querido. Estamos comprometidos a ayudarte a mantener viva su memoria de una forma emotiva y respetuosa.</p>
-            
             <h3 style="color: #5e60ce;">🛠️ ¿Qué sigue?</h3>
             <ul>
                 <li>✔️ <strong>Envíanos</strong> fotos, videos y textos para el homenaje.</li>
                 <li>✔️ <strong>Diseñamos</strong> un espacio digital único y seguro.</li>
                 <li>✔️ <strong>Instalamos</strong> el código QR en la lápida o recuerdo.</li>
             </ul>
-
             <p style="background-color: #f1f1f1; padding: 10px; border-radius: 6px;">
                 <strong>📌 Importante:</strong><br>
                 • El código QR es duradero y resistente al clima.<br>
                 • Recibirás un enlace privado para gestionar el contenido.
             </p>
-
             <p>📲 Puedes enviar el material por <strong>WhatsApp</strong> al <a href="https://wa.me/573053629015">305 362 9015</a><br>
             o al correo: <strong>jamasolvidad@gmail.com</strong></p>
-
             <h3 style="color: #5e60ce;">📋 Información del formulario:</h3>
             <ul>
     """
@@ -104,8 +100,13 @@ def validar(campos):
 
     return errores
 
-# Pantalla de inicio
+# Configuración de la app
 st.set_page_config(layout="centered")
+
+if "mostrar_formulario" not in st.session_state:
+    st.session_state.mostrar_formulario = False
+if "tipo_formulario" not in st.session_state:
+    st.session_state.tipo_formulario = "Funeraria"
 
 # Mostrar logo
 with open("logo_jamasolvidad.jpg", "rb") as f:
@@ -134,24 +135,30 @@ st.markdown("---")
 # Botones para mostrar formularios
 formulario_elegido = st.radio("Selecciona el formulario:", ("Funeraria", "Cementerio"))
 if st.button("Abrir formulario"):
-    tipo = formulario_elegido
+    st.session_state.tipo_formulario = formulario_elegido
+    st.session_state.mostrar_formulario = True
+
+if st.session_state.mostrar_formulario:
+    tipo = st.session_state.tipo_formulario
     st.markdown("---")
     st.header(f"Formulario {tipo}")
 
-    nombre = st.text_input("Nombre del fallecido")
-    nacimiento = st.text_input("Año de nacimiento")
-    fallecimiento = st.text_input("Año de fallecimiento")
-    telefono = st.text_input("Teléfono")
-    email = st.text_input("Email")
+    nombre = st.text_input("Nombre del fallecido", key="nombre")
+    nacimiento = st.text_input("Año de nacimiento", key="nacimiento")
+    fallecimiento = st.text_input("Año de fallecimiento", key="fallecimiento")
+    telefono = st.text_input("Teléfono", key="telefono")
+    email = st.text_input("Email", key="email")
 
     if tipo == "Funeraria":
         opciones = ["Funeraria San Vicente", "Funeraria La Ermita", "Funeraria In Memoriam", "Otra"]
     else:
         opciones = ["Cementerio Metropolitano del Sur", "Cementerio Central", "Jardines de la Aurora", "Otra"]
 
-    lugar = st.selectbox(f"{tipo} asociado", opciones)
-    if lugar == "Otra":
-        lugar = st.text_input(f"Escriba el nombre del {tipo.lower()}: ")
+    lugar_opcion = st.selectbox(f"{tipo} asociado", opciones, key="opcion")
+    if lugar_opcion == "Otra":
+        lugar = st.text_input(f"Escriba el nombre del {tipo.lower()}: ", key="otro")
+    else:
+        lugar = lugar_opcion
 
     if st.button("Enviar solicitud"):
         campos = {
@@ -169,3 +176,4 @@ if st.button("Abrir formulario"):
             guardar_en_excel("datos_jamasolvidad.xlsx", campos)
             enviar_correo(email, campos)
             st.success("✅ ¡Tu solicitud fue enviada exitosamente! Gracias por confiar en nosotros. Pronto nos pondremos en contacto contigo.")
+            st.session_state.mostrar_formulario = False
