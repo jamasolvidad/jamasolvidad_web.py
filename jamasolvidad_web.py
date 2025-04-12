@@ -143,37 +143,42 @@ if st.session_state.mostrar_formulario:
     st.markdown("---")
     st.header(f"Formulario {tipo}")
 
-    nombre = st.text_input("Nombre del fallecido", key="nombre")
-    nacimiento = st.text_input("Año de nacimiento", key="nacimiento")
-    fallecimiento = st.text_input("Año de fallecimiento", key="fallecimiento")
-    telefono = st.text_input("Teléfono", key="telefono")
-    email = st.text_input("Email", key="email")
+    nombre = st.text_input("Nombre del fallecido", key=f"{tipo}_nombre")
+    nacimiento = st.text_input("Año de nacimiento", key=f"{tipo}_nacimiento")
+    fallecimiento = st.text_input("Año de fallecimiento", key=f"{tipo}_fallecimiento")
+    telefono = st.text_input("Teléfono", key=f"{tipo}_telefono")
+    email = st.text_input("Email", key=f"{tipo}_email")
 
     if tipo == "Funeraria":
         opciones = ["Funeraria San Vicente", "Funeraria La Ermita", "Funeraria In Memoriam", "Otra"]
     else:
         opciones = ["Cementerio Metropolitano del Sur", "Cementerio Central", "Jardines de la Aurora", "Otra"]
 
-    lugar_opcion = st.selectbox(f"{tipo} asociado", opciones, key="opcion")
+    lugar_opcion = st.selectbox(f"{tipo} asociado", opciones, key=f"{tipo}_opcion")
     if lugar_opcion == "Otra":
-        lugar = st.text_input(f"Escriba el nombre del {tipo.lower()}: ", key="otro")
+        lugar = st.text_input(f"Escriba el nombre del {tipo.lower()}: ", key=f"{tipo}_otro")
     else:
         lugar = lugar_opcion
 
-    if st.button("Enviar solicitud"):
-        campos = {
-            "Nombre": nombre,
-            "Año de nacimiento": nacimiento,
-            "Año de fallecimiento": fallecimiento,
-            "Teléfono": telefono,
-            "Email": email,
-            f"{tipo} asociado": lugar
-        }
-        errores = validar(campos)
-        if errores:
-            st.error("\n".join(errores))
-        else:
-            guardar_en_excel("datos_jamasolvidad.xlsx", campos)
-            enviar_correo(email, campos)
-            st.success("✅ ¡Tu solicitud fue enviada exitosamente! Gracias por confiar en nosotros. Pronto nos pondremos en contacto contigo.")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Enviar solicitud"):
+            campos = {
+                "Nombre": nombre,
+                "Año de nacimiento": nacimiento,
+                "Año de fallecimiento": fallecimiento,
+                "Teléfono": telefono,
+                "Email": email,
+                f"{tipo} asociado": lugar
+            }
+            errores = validar(campos)
+            if errores:
+                st.error("\n".join(errores))
+            else:
+                guardar_en_excel("datos_jamasolvidad.xlsx", campos)
+                enviar_correo(email, campos)
+                st.success("✅ ¡Tu solicitud fue enviada exitosamente! Gracias por confiar en nosotros. Pronto nos pondremos en contacto contigo.")
+                st.session_state.mostrar_formulario = False
+    with col2:
+        if st.button("❌ Cancelar"):
             st.session_state.mostrar_formulario = False
