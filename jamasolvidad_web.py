@@ -66,7 +66,6 @@ def enviar_correo(destinatario, datos):
         smtp.send_message(mensaje)
 
 # Validar
-
 def validar(campos):
     errores = []
     anio_actual = datetime.now().year
@@ -161,19 +160,21 @@ if st.session_state['pantalla'] == 'inicio':
     """, unsafe_allow_html=True)
 
     st.markdown("---")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Formulario Funeraria"):
-            st.session_state['pantalla'] = "Funeraria"
-            st.experimental_rerun()
-    with col2:
-        if st.button("Formulario Cementerio"):
-            st.session_state['pantalla'] = "Cementerio"
-            st.experimental_rerun()
+    if st.button("Formulario Funeraria"):
+        st.session_state['pantalla'] = "Funeraria"
+        st.experimental_rerun()
+    if st.button("Formulario Cementerio"):
+        st.session_state['pantalla'] = "Cementerio"
+        st.experimental_rerun()
 
     if st.button("Salir"):
-        st.write("Gracias por visitarnos.")
-        st.stop()
+        st.session_state['pantalla'] = 'salir'
+        st.experimental_rerun()
 
 elif st.session_state['pantalla'] in ["Funeraria", "Cementerio"]:
     formulario(st.session_state['pantalla'])
+
+elif st.session_state['pantalla'] == 'salir':
+    st.set_page_config(layout="centered")
+    st.markdown("<h2 style='text-align:center;'>Gracias por visitarnos.</h2>", unsafe_allow_html=True)
+    st.stop()
