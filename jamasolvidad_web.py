@@ -111,7 +111,7 @@ def formulario(tipo):
     st.markdown("---")
     if st.button("← Volver al inicio"):
         st.session_state['pantalla'] = 'inicio'
-        st.rerun()
+        st.experimental_rerun()
 
     nombre = st.text_input("Nombre del fallecido")
     nacimiento = st.text_input("Año de nacimiento")
@@ -126,7 +126,7 @@ def formulario(tipo):
 
     lugar = st.selectbox(f"{tipo} asociado", opciones)
     if lugar == "Otra":
-        lugar = st.text_input(f"Escriba el nombre del {tipo.lower()}:")
+        lugar = st.text_input(f"Escriba el nombre del {tipo.lower()}: ")
 
     if st.button("Enviar solicitud"):
         campos = {
@@ -145,7 +145,7 @@ def formulario(tipo):
             enviar_correo(email, campos)
             st.session_state['mensaje_exito'] = True
             st.session_state['pantalla'] = 'inicio'
-            st.rerun()
+            st.experimental_rerun()
 
 # Interfaz principal
 if 'pantalla' not in st.session_state:
@@ -159,7 +159,12 @@ if st.session_state['pantalla'] == 'inicio':
     st.markdown("<h1 style='text-align: center;'>Jamasolvidad</h1>", unsafe_allow_html=True)
 
     if st.session_state.get('mensaje_exito'):
-        st.success("✅ Tu solicitud fue enviada exitosamente. Nos pondremos en contacto pronto.")
+        st.markdown("""
+        <div style="background-color: #d4edda; padding: 20px; border-radius: 10px; border: 1px solid #c3e6cb; text-align: center;">
+            <h3 style="color: #155724;">✅ ¡Tu solicitud fue enviada exitosamente!</h3>
+            <p style="color: #155724;">Gracias por confiar en nosotros. Pronto nos pondremos en contacto contigo.</p>
+        </div>
+        """, unsafe_allow_html=True)
         st.session_state['mensaje_exito'] = False
 
     # Mostrar logo
@@ -176,25 +181,24 @@ if st.session_state['pantalla'] == 'inicio':
         img_base64 = b64encode(f.read()).decode()
 
     st.markdown(f"""
-    <a href="https://drive.google.com/file/d/1HWSGTcwaczETPg3luz7rGzcDwtYAJmZw/view?usp=sharing" target="_blank" style="text-decoration: none;">
-        <div style="position: relative; display: inline-block; width: 100%;">
-            <img src="data:image/jpeg;base64,{img_base64}" style="width: 100%; border-radius: 10px;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/YouTube_play_button_icon_%282013-2017%29.svg"
-                 style="position: absolute; top: 50%; left: 50%; width: 60px; transform: translate(-50%, -50%); opacity: 0.8;">
-        </div>
-    </a>
+    <div style="text-align:center;">
+        <a href="https://drive.google.com/file/d/1HWSGTcwaczETPg3luz7rGzcDwtYAJmZw/view?usp=sharing" target="_blank" style="position: relative; display: inline-block;">
+            <img src="data:image/jpeg;base64,{img_base64}" style="width: 100%; max-width: 400px; border-radius: 12px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/YouTube_play_button_icon_%282013-2017%29.svg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 64px; opacity: 0.8;">
+        </a>
+    </div>
     """, unsafe_allow_html=True)
 
     st.markdown("---")
     if st.button("Formulario Funeraria"):
         st.session_state['pantalla'] = "Funeraria"
-        st.rerun()
+        st.experimental_rerun()
     if st.button("Formulario Cementerio"):
         st.session_state['pantalla'] = "Cementerio"
-        st.rerun()
+        st.experimental_rerun()
     if st.button("Salir"):
         st.session_state['pantalla'] = 'salir'
-        st.rerun()
+        st.experimental_rerun()
 
 elif st.session_state['pantalla'] in ["Funeraria", "Cementerio"]:
     formulario(st.session_state['pantalla'])
