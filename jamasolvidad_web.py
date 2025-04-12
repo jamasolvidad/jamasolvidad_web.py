@@ -145,7 +145,8 @@ def formulario(tipo):
             enviar_correo(email, campos)
             st.session_state['mensaje_exito'] = True
             st.session_state['pantalla'] = 'inicio'
-            st.experimental_rerun()
+            st.success("✅ ¡Formulario enviado con éxito!")
+            st.stop()
 
 # Interfaz principal
 if 'pantalla' not in st.session_state:
