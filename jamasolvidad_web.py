@@ -4,12 +4,12 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 
-# Configuration
+# Configuración
 CLAVE_APP = "upvucofjunwdstid"
 EMAIL_FROM = "jamasolvidad@gmail.com"
 EMAIL_TO = "jamasolvidad@gmail.com"
 
-# Sample data for dropdowns
+# Datos para dropdowns
 funerarias_cali = [
     "Funeraria Los Olivos",
     "Funeraria La Piedad",
@@ -45,14 +45,17 @@ formas_pago = [
     "Efectivo"
 ]
 
-def send_email(subject, body, to_emails):
+def send_email(subject, body, to_emails, is_html=False):
     try:
         msg = MIMEMultipart()
         msg['From'] = EMAIL_FROM
         msg['To'] = ", ".join(to_emails)
         msg['Subject'] = subject
         
-        msg.attach(MIMEText(body, 'plain'))
+        if is_html:
+            msg.attach(MIMEText(body, 'html'))
+        else:
+            msg.attach(MIMEText(body, 'plain'))
         
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
@@ -64,6 +67,89 @@ def send_email(subject, body, to_emails):
     except Exception as e:
         st.error(f"Error al enviar el correo: {e}")
         return False
+
+def create_email_body(form_data, form_type):
+    html_content = f"""
+    <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
+                .header {{ color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }}
+                .steps {{ margin: 20px 0; }}
+                .step {{ margin-bottom: 15px; padding-left: 15px; border-left: 3px solid #3498db; }}
+                .important {{ font-weight: bold; color: #e74c3c; }}
+                .details {{ background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 25px 0; border: 1px solid #ddd; }}
+                table {{ width: 100%; border-collapse: collapse; }}
+                td {{ padding: 8px; border-bottom: 1px solid #ddd; }}
+                .footer {{ margin-top: 30px; font-size: 0.9em; color: #7f8c8d; text-align: center; }}
+                h2 {{ color: #2c3e50; }}
+                h3 {{ color: #3498db; }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h2>Gracias por elegir nuestro servicio</h2>
+                <p>Para honrar la memoria de tu ser querido</p>
+            </div>
+            
+            <p style="font-size: 16px;">Estamos comprometidos a ayudarte a preservar su legado de una manera única y emotiva.</p>
+            
+            <div class="steps">
+                <h3>📋 Próximos pasos:</h3>
+                <div class="step">
+                    <strong>1. Recopilación de Contenido:</strong><br>
+                    Envíanos las fotos, videos y textos que deseas incluir en el código QR.
+                </div>
+                <div class="step">
+                    <strong>2. Diseño y Personalización:</strong><br>
+                    Nos encargaremos de crear un espacio digital seguro y accesible.
+                </div>
+                <div class="step">
+                    <strong>3. Instalación del Código QR:</strong><br>
+                    Una vez listo, te contactaremos para coordinar la instalación en la lápida.
+                </div>
+            </div>
+            
+            <div>
+                <h3>🔍 Datos Importantes:</h3>
+                <ul style="padding-left: 20px;">
+                    <li>El código QR es <span class="important">duradero y resistente</span> a las condiciones climáticas.</li>
+                    <li>Te proporcionaremos un <span class="important">enlace de acceso privado</span> para gestionar los contenidos.</li>
+                </ul>
+            </div>
+            
+            <div class="details">
+                <h3>📝 Datos del formulario ({'Funeraria' if form_type == 'Funeraria' else 'Cementerio'}):</h3>
+                <table>
+    """
+    
+    for key, value in form_data.items():
+        html_content += f"""
+                    <tr>
+                        <td style="width: 40%;"><strong>{key}:</strong></td>
+                        <td>{value}</td>
+                    </tr>
+        """
+    
+    html_content += """
+                </table>
+            </div>
+            
+            <div class="footer">
+                <p>Si tienes alguna duda o necesitas asistencia, no dudes en contactarnos.</p>
+                <p>Estamos aquí para ayudarte en cada paso.</p>
+                <p style="margin-top: 15px;">Gracias por confiar en nosotros para mantener viva su memoria.</p>
+                
+                <div style="margin-top: 25px; padding: 15px; background-color: #f0f8ff; border-radius: 5px;">
+                    <h4 style="margin-top: 0; color: #2980b9;">📬 Enviar material:</h4>
+                    <p><strong>WhatsApp:</strong> 3053629015</p>
+                    <p><strong>Correo electrónico:</strong> jamasolvidad@gmail.com</p>
+                </div>
+            </div>
+        </body>
+    </html>
+    """
+    return html_content
 
 def funeraria_form():
     st.header("Formulario Funeraria")
@@ -87,46 +173,29 @@ def funeraria_form():
         submitted = st.form_submit_button("Enviar")
         
         if submitted:
-            # Validate required fields
             if not all([cedula, nombre, telefono, email, cliente, funeraria, vendedor, pago]):
                 st.error("Por favor complete todos los campos obligatorios")
                 return
                 
-            # Prepare email content
-            subject = f"Nuevo formulario Funeraria - {nombre}"
-            body = f"""Gracias por elegir nuestro servicio para honrar la memoria de tu ser querido.  
-Estamos comprometidos a ayudarte a preservar su legado de una manera única y emotiva. A continuación, te explicamos los siguientes pasos:
-1. Recopilación de Contenido: Envíanos las fotos, videos y textos que deseas incluir en el código QR.
-2. Diseño y Personalización: Nos encargaremos de crear un espacio digital seguro y accesible.
-3. Instalación del Código QR: Una vez listo, te contactaremos para coordinar la instalación en la lápida.
-
-Datos Importantes:
-• El código QR es duradero y resistente a las condiciones climáticas.
-• Te proporcionaremos un enlace de acceso privado para que gestiones los contenidos.
-
-Si tienes alguna duda o necesitas asistencia, no dudes en contactarnos. Estamos aquí para ayudarte en cada paso.
-Gracias por confiar en nosotros para mantener viva su memoria. 
-
-Enviar material para el video al WhatsApp 3053629015 o al correo jamasolvidad@gmail.com
-
-Datos del formulario:
-Cédula: {cedula}
-Nombre y Apellido: {nombre}
-Teléfono: {telefono}
-Email: {email}
-Cliente (Fallecido): {cliente}
-Año de nacimiento: {ano_nacimiento}
-Año de fallecimiento: {ano_fallecimiento}
-Funeraria: {funeraria}
-Vendedor: {vendedor}
-Forma de pago: {pago}
-"""
+            form_data = {
+                "Cédula": cedula,
+                "Nombre y Apellido": nombre,
+                "Teléfono": telefono,
+                "Email": email,
+                "Cliente (Fallecido)": cliente,
+                "Año de nacimiento": ano_nacimiento,
+                "Año de fallecimiento": ano_fallecimiento,
+                "Funeraria": funeraria,
+                "Vendedor": vendedor,
+                "Forma de pago": pago
+            }
             
-            # Send email
-            if send_email(subject, body, [email, EMAIL_TO]):
-                st.success("Formulario enviado correctamente. Recibirás un correo de confirmación.")
+            html_body = create_email_body(form_data, "Funeraria")
+            
+            if send_email(f"Nuevo formulario Funeraria - {nombre}", html_body, [email, EMAIL_TO], is_html=True):
+                st.success("✅ Formulario enviado correctamente. Recibirás un correo de confirmación.")
             else:
-                st.error("Error al enviar el formulario. Por favor intente nuevamente.")
+                st.error("❌ Error al enviar el formulario. Por favor intente nuevamente.")
 
 def cementerio_form():
     st.header("Formulario Cementerio")
@@ -150,52 +219,33 @@ def cementerio_form():
         submitted = st.form_submit_button("Enviar")
         
         if submitted:
-            # Validate required fields
             if not all([cedula, nombre, telefono, email, cliente, cementerio, vendedor, pago]):
                 st.error("Por favor complete todos los campos obligatorios")
                 return
                 
-            # Prepare email content
-            subject = f"Nuevo formulario Cementerio - {nombre}"
-            body = f"""Gracias por elegir nuestro servicio para honrar la memoria de tu ser querido.  
-Estamos comprometidos a ayudarte a preservar su legado de una manera única y emotiva. A continuación, te explicamos los siguientes pasos:
-1. Recopilación de Contenido: Envíanos las fotos, videos y textos que deseas incluir en el código QR.
-2. Diseño y Personalización: Nos encargaremos de crear un espacio digital seguro y accesible.
-3. Instalación del Código QR: Una vez listo, te contactaremos para coordinar la instalación en la lápida.
-
-Datos Importantes:
-• El código QR es duradero y resistente a las condiciones climáticas.
-• Te proporcionaremos un enlace de acceso privado para que gestiones los contenidos.
-
-Si tienes alguna duda o necesitas asistencia, no dudes en contactarnos. Estamos aquí para ayudarte en cada paso.
-Gracias por confiar en nosotros para mantener viva su memoria. 
-
-Enviar material para el video al WhatsApp 3053629015 o al correo jamasolvidad@gmail.com
-
-Datos del formulario:
-Cédula: {cedula}
-Nombre y Apellido: {nombre}
-Teléfono: {telefono}
-Email: {email}
-Cliente (Fallecido): {cliente}
-Año de nacimiento: {ano_nacimiento}
-Año de fallecimiento: {ano_fallecimiento}
-Cementerio: {cementerio}
-Vendedor: {vendedor}
-Forma de pago: {pago}
-"""
+            form_data = {
+                "Cédula": cedula,
+                "Nombre y Apellido": nombre,
+                "Teléfono": telefono,
+                "Email": email,
+                "Cliente (Fallecido)": cliente,
+                "Año de nacimiento": ano_nacimiento,
+                "Año de fallecimiento": ano_fallecimiento,
+                "Cementerio": cementerio,
+                "Vendedor": vendedor,
+                "Forma de pago": pago
+            }
             
-            # Send email
-            if send_email(subject, body, [email, EMAIL_TO]):
-                st.success("Formulario enviado correctamente. Recibirás un correo de confirmación.")
+            html_body = create_email_body(form_data, "Cementerio")
+            
+            if send_email(f"Nuevo formulario Cementerio - {nombre}", html_body, [email, EMAIL_TO], is_html=True):
+                st.success("✅ Formulario enviado correctamente. Recibirás un correo de confirmación.")
             else:
-                st.error("Error al enviar el formulario. Por favor intente nuevamente.")
+                st.error("❌ Error al enviar el formulario. Por favor intente nuevamente.")
 
 def main():
-    # Page configuration
     st.set_page_config(page_title="Jamasolvida", page_icon=":rose:", layout="centered")
     
-    # Header with logo and thumbnail
     col1, col2 = st.columns([1, 2])
     with col1:
         st.image("logo_jamasolvidad.jpg", width=150)
@@ -205,10 +255,9 @@ def main():
     st.title("Bienvenido a Jamasolvida")
     st.write("Servicios conmemorativos para honrar la memoria de tus seres queridos")
     
-    # Navigation buttons
     option = st.radio("Seleccione una opción:", 
-                      ["Inicio", "Formulario Funeraria", "Formulario Cementerio", "Salir"],
-                      horizontal=True)
+                     ["Inicio", "Formulario Funeraria", "Formulario Cementerio", "Salir"],
+                     horizontal=True)
     
     if option == "Inicio":
         st.write("Por favor seleccione uno de los formularios para continuar.")
