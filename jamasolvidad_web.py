@@ -9,6 +9,7 @@ import re
 CLAVE_APP = "upvucofjunwdstid"
 EMAIL_FROM = "jamasolvidad@gmail.com"
 EMAIL_TO = "jamasolvidad@gmail.com"
+VIDEO_URL = "https://drive.google.com/file/d/1HWSGTcwaczETPg3luz7rGzcDwtYAJmZw/view?usp=drive_link"
 
 # Datos para dropdowns
 funerarias_cali = [
@@ -160,6 +161,10 @@ def validate_cedula(cedula):
     """Valida que la cédula contenga solo números"""
     return cedula.isdigit()
 
+def validate_name(name):
+    """Valida que el nombre contenga solo letras y espacios"""
+    return all(c.isalpha() or c.isspace() for c in name)
+
 def funeraria_form():
     st.header("Formulario Funeraria")
     
@@ -186,16 +191,16 @@ def funeraria_form():
             errors = []
             
             if not validate_cedula(cedula):
-                errors.append("La cédula debe contener solo números")
+                errors.append("❌ La cédula debe contener solo números")
                 
-            if not nombre.replace(" ", "").isalpha():
-                errors.append("El nombre debe contener solo letras y espacios")
+            if not validate_name(nombre):
+                errors.append("❌ El nombre debe contener solo letras y espacios")
                 
             if not validate_phone(telefono):
-                errors.append("El teléfono debe tener exactamente 10 dígitos numéricos")
+                errors.append("❌ El teléfono debe tener exactamente 10 dígitos numéricos")
                 
             if not all([cedula, nombre, telefono, email, cliente, funeraria, vendedor, pago]):
-                errors.append("Por favor complete todos los campos obligatorios")
+                errors.append("❌ Por favor complete todos los campos obligatorios")
             
             if errors:
                 for error in errors:
@@ -218,9 +223,10 @@ def funeraria_form():
             html_body = create_email_body(form_data, "Funeraria")
             
             if send_email(f"Nuevo formulario Funeraria - {nombre}", html_body, [email, EMAIL_TO], is_html=True):
-                st.success("✅ Formulario enviado correctamente. Recibirás un correo de confirmación.")
                 st.session_state.show_form = False
-                st.experimental_rerun()  # Vuelve a la página de inicio
+                st.session_state.form_submitted = True
+                st.session_state.form_type = "Funeraria"
+                st.experimental_rerun()
             else:
                 st.error("❌ Error al enviar el formulario. Por favor intente nuevamente.")
 
@@ -250,16 +256,16 @@ def cementerio_form():
             errors = []
             
             if not validate_cedula(cedula):
-                errors.append("La cédula debe contener solo números")
+                errors.append("❌ La cédula debe contener solo números")
                 
-            if not nombre.replace(" ", "").isalpha():
-                errors.append("El nombre debe contener solo letras y espacios")
+            if not validate_name(nombre):
+                errors.append("❌ El nombre debe contener solo letras y espacios")
                 
             if not validate_phone(telefono):
-                errors.append("El teléfono debe tener exactamente 10 dígitos numéricos")
+                errors.append("❌ El teléfono debe tener exactamente 10 dígitos numéricos")
                 
             if not all([cedula, nombre, telefono, email, cliente, cementerio, vendedor, pago]):
-                errors.append("Por favor complete todos los campos obligatorios")
+                errors.append("❌ Por favor complete todos los campos obligatorios")
             
             if errors:
                 for error in errors:
@@ -282,9 +288,10 @@ def cementerio_form():
             html_body = create_email_body(form_data, "Cementerio")
             
             if send_email(f"Nuevo formulario Cementerio - {nombre}", html_body, [email, EMAIL_TO], is_html=True):
-                st.success("✅ Formulario enviado correctamente. Recibirás un correo de confirmación.")
                 st.session_state.show_form = False
-                st.experimental_rerun()  # Vuelve a la página de inicio
+                st.session_state.form_submitted = True
+                st.session_state.form_type = "Cementerio"
+                st.experimental_rerun()
             else:
                 st.error("❌ Error al enviar el formulario. Por favor intente nuevamente.")
 
@@ -294,13 +301,28 @@ def main():
     # Inicializar estado de sesión
     if 'show_form' not in st.session_state:
         st.session_state.show_form = True
+    if 'form_submitted' not in st.session_state:
+        st.session_state.form_submitted = False
+    if 'form_type' not in st.session_state:
+        st.session_state.form_type = ""
     
-    # Mostrar encabezado
+    # Mostrar encabezado con logo y miniatura clickable
     col1, col2 = st.columns([1, 2])
     with col1:
         st.image("logo_jamasolvidad.jpg", width=150)
     with col2:
-        st.image("video_thumbnail.jpg", width=300)
+        # Miniatura clickable con ícono de play
+        thumbnail_html = f"""
+        <div style="position: relative; display: inline-block; cursor: pointer;" onclick="window.open('{VIDEO_URL}', '_blank')">
+            <img src="video_thumbnail.jpg" width="300" style="border-radius: 10px; border: 2px solid #3498db;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="#ffffff" style="filter: drop-shadow(2px 2px 4px #000000);">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                </svg>
+            </div>
+        </div>
+        """
+        st.markdown(thumbnail_html, unsafe_allow_html=True)
     
     st.title("Bienvenido a Jamasolvida")
     st.write("Servicios conmemorativos para honrar la memoria de tus seres queridos")
@@ -320,9 +342,13 @@ def main():
         elif option == "Salir":
             st.stop()
     else:
-        st.success("Formulario enviado con éxito. Gracias por usar nuestros servicios.")
+        if st.session_state.form_submitted:
+            st.success(f"✅ Formulario de {st.session_state.form_type} enviado correctamente. Recibirás un correo de confirmación.")
+            st.balloons()
+        
         if st.button("Volver al inicio"):
             st.session_state.show_form = True
+            st.session_state.form_submitted = False
             st.experimental_rerun()
 
 if __name__ == "__main__":
