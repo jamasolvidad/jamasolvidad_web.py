@@ -3,6 +3,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
+import re
 
 # Configuración
 CLAVE_APP = "upvucofjunwdstid"
@@ -151,30 +152,54 @@ def create_email_body(form_data, form_type):
     """
     return html_content
 
+def validate_phone(phone):
+    """Valida que el teléfono tenga exactamente 10 dígitos numéricos"""
+    return re.match(r'^\d{10}$', phone) is not None
+
+def validate_cedula(cedula):
+    """Valida que la cédula contenga solo números"""
+    return cedula.isdigit()
+
 def funeraria_form():
     st.header("Formulario Funeraria")
     
     with st.form("funeraria_form"):
-        cedula = st.text_input("Cédula", max_chars=20)
-        nombre = st.text_input("Nombre y Apellido", max_chars=100)
-        telefono = st.text_input("Teléfono", max_chars=20)
-        email = st.text_input("Email", max_chars=100)
-        cliente = st.text_input("Cliente (Fallecido)", max_chars=100)
+        cedula = st.text_input("Cédula (solo números)", max_chars=20, key="funeraria_cedula")
+        nombre = st.text_input("Nombre y Apellido", max_chars=100, key="funeraria_nombre")
+        telefono = st.text_input("Teléfono (10 dígitos)", max_chars=10, key="funeraria_telefono")
+        email = st.text_input("Email", max_chars=100, key="funeraria_email")
+        cliente = st.text_input("Cliente (Fallecido)", max_chars=100, key="funeraria_cliente")
         
         current_year = datetime.now().year
         min_year = current_year - 110
-        ano_nacimiento = st.number_input("Año de nacimiento", min_value=min_year, max_value=current_year, value=current_year-80)
-        ano_fallecimiento = st.number_input("Año de fallecimiento", min_value=ano_nacimiento, max_value=current_year, value=current_year)
+        ano_nacimiento = st.number_input("Año de nacimiento", min_value=min_year, max_value=current_year, value=current_year-80, key="funeraria_nacimiento")
+        ano_fallecimiento = st.number_input("Año de fallecimiento", min_value=ano_nacimiento, max_value=current_year, value=current_year, key="funeraria_fallecimiento")
         
-        funeraria = st.selectbox("Funeraria", funerarias_cali)
-        vendedor = st.text_input("Vendedor", max_chars=100)
-        pago = st.selectbox("Forma de pago", formas_pago)
+        funeraria = st.selectbox("Funeraria", funerarias_cali, key="funeraria_funeraria")
+        vendedor = st.text_input("Vendedor", max_chars=100, key="funeraria_vendedor")
+        pago = st.selectbox("Forma de pago", formas_pago, key="funeraria_pago")
         
         submitted = st.form_submit_button("Enviar")
         
         if submitted:
+            # Validaciones
+            errors = []
+            
+            if not validate_cedula(cedula):
+                errors.append("La cédula debe contener solo números")
+                
+            if not nombre.replace(" ", "").isalpha():
+                errors.append("El nombre debe contener solo letras y espacios")
+                
+            if not validate_phone(telefono):
+                errors.append("El teléfono debe tener exactamente 10 dígitos numéricos")
+                
             if not all([cedula, nombre, telefono, email, cliente, funeraria, vendedor, pago]):
-                st.error("Por favor complete todos los campos obligatorios")
+                errors.append("Por favor complete todos los campos obligatorios")
+            
+            if errors:
+                for error in errors:
+                    st.error(error)
                 return
                 
             form_data = {
@@ -194,6 +219,8 @@ def funeraria_form():
             
             if send_email(f"Nuevo formulario Funeraria - {nombre}", html_body, [email, EMAIL_TO], is_html=True):
                 st.success("✅ Formulario enviado correctamente. Recibirás un correo de confirmación.")
+                st.session_state.show_form = False
+                st.experimental_rerun()  # Vuelve a la página de inicio
             else:
                 st.error("❌ Error al enviar el formulario. Por favor intente nuevamente.")
 
@@ -201,26 +228,42 @@ def cementerio_form():
     st.header("Formulario Cementerio")
     
     with st.form("cementerio_form"):
-        cedula = st.text_input("Cédula", max_chars=20)
-        nombre = st.text_input("Nombre y Apellido", max_chars=100)
-        telefono = st.text_input("Teléfono", max_chars=20)
-        email = st.text_input("Email", max_chars=100)
-        cliente = st.text_input("Cliente (Fallecido)", max_chars=100)
+        cedula = st.text_input("Cédula (solo números)", max_chars=20, key="cementerio_cedula")
+        nombre = st.text_input("Nombre y Apellido", max_chars=100, key="cementerio_nombre")
+        telefono = st.text_input("Teléfono (10 dígitos)", max_chars=10, key="cementerio_telefono")
+        email = st.text_input("Email", max_chars=100, key="cementerio_email")
+        cliente = st.text_input("Cliente (Fallecido)", max_chars=100, key="cementerio_cliente")
         
         current_year = datetime.now().year
         min_year = current_year - 110
-        ano_nacimiento = st.number_input("Año de nacimiento", min_value=min_year, max_value=current_year, value=current_year-80)
-        ano_fallecimiento = st.number_input("Año de fallecimiento", min_value=ano_nacimiento, max_value=current_year, value=current_year)
+        ano_nacimiento = st.number_input("Año de nacimiento", min_value=min_year, max_value=current_year, value=current_year-80, key="cementerio_nacimiento")
+        ano_fallecimiento = st.number_input("Año de fallecimiento", min_value=ano_nacimiento, max_value=current_year, value=current_year, key="cementerio_fallecimiento")
         
-        cementerio = st.selectbox("Cementerio", cementerios_cali)
-        vendedor = st.text_input("Vendedor", max_chars=100)
-        pago = st.selectbox("Forma de pago", formas_pago)
+        cementerio = st.selectbox("Cementerio", cementerios_cali, key="cementerio_cementerio")
+        vendedor = st.text_input("Vendedor", max_chars=100, key="cementerio_vendedor")
+        pago = st.selectbox("Forma de pago", formas_pago, key="cementerio_pago")
         
         submitted = st.form_submit_button("Enviar")
         
         if submitted:
+            # Validaciones
+            errors = []
+            
+            if not validate_cedula(cedula):
+                errors.append("La cédula debe contener solo números")
+                
+            if not nombre.replace(" ", "").isalpha():
+                errors.append("El nombre debe contener solo letras y espacios")
+                
+            if not validate_phone(telefono):
+                errors.append("El teléfono debe tener exactamente 10 dígitos numéricos")
+                
             if not all([cedula, nombre, telefono, email, cliente, cementerio, vendedor, pago]):
-                st.error("Por favor complete todos los campos obligatorios")
+                errors.append("Por favor complete todos los campos obligatorios")
+            
+            if errors:
+                for error in errors:
+                    st.error(error)
                 return
                 
             form_data = {
@@ -240,12 +283,19 @@ def cementerio_form():
             
             if send_email(f"Nuevo formulario Cementerio - {nombre}", html_body, [email, EMAIL_TO], is_html=True):
                 st.success("✅ Formulario enviado correctamente. Recibirás un correo de confirmación.")
+                st.session_state.show_form = False
+                st.experimental_rerun()  # Vuelve a la página de inicio
             else:
                 st.error("❌ Error al enviar el formulario. Por favor intente nuevamente.")
 
 def main():
     st.set_page_config(page_title="Jamasolvida", page_icon=":rose:", layout="centered")
     
+    # Inicializar estado de sesión
+    if 'show_form' not in st.session_state:
+        st.session_state.show_form = True
+    
+    # Mostrar encabezado
     col1, col2 = st.columns([1, 2])
     with col1:
         st.image("logo_jamasolvidad.jpg", width=150)
@@ -255,18 +305,25 @@ def main():
     st.title("Bienvenido a Jamasolvida")
     st.write("Servicios conmemorativos para honrar la memoria de tus seres queridos")
     
-    option = st.radio("Seleccione una opción:", 
-                     ["Inicio", "Formulario Funeraria", "Formulario Cementerio", "Salir"],
-                     horizontal=True)
-    
-    if option == "Inicio":
-        st.write("Por favor seleccione uno de los formularios para continuar.")
-    elif option == "Formulario Funeraria":
-        funeraria_form()
-    elif option == "Formulario Cementerio":
-        cementerio_form()
-    elif option == "Salir":
-        st.stop()
+    # Navegación
+    if st.session_state.show_form:
+        option = st.radio("Seleccione una opción:", 
+                         ["Inicio", "Formulario Funeraria", "Formulario Cementerio", "Salir"],
+                         horizontal=True)
+        
+        if option == "Inicio":
+            st.write("Por favor seleccione uno de los formularios para continuar.")
+        elif option == "Formulario Funeraria":
+            funeraria_form()
+        elif option == "Formulario Cementerio":
+            cementerio_form()
+        elif option == "Salir":
+            st.stop()
+    else:
+        st.success("Formulario enviado con éxito. Gracias por usar nuestros servicios.")
+        if st.button("Volver al inicio"):
+            st.session_state.show_form = True
+            st.experimental_rerun()
 
 if __name__ == "__main__":
     main()
