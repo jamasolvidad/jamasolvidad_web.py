@@ -1,122 +1,223 @@
 import streamlit as st
-import openpyxl
 import smtplib
-from email.message import EmailMessage
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime
-import os
-import re
-from PIL import Image
-from base64 import b64encode
 
-# Configuración de la aplicación
-st.set_page_config(layout="centered")
-
-# Variables de correo
-EMAIL_REMITENTE = "jamasolvidad@gmail.com"
+# Configuration
 CLAVE_APP = "upvucofjunwdstid"
+EMAIL_FROM = "jamasolvidad@gmail.com"
+EMAIL_TO = "jamasolvidad@gmail.com"
 
-# Función para guardar datos en Excel
-def guardar_en_excel(nombre_archivo, datos):
-    if not os.path.exists(nombre_archivo):
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.append(list(datos.keys()))
-    else:
-        wb = openpyxl.load_workbook(nombre_archivo)
-        ws = wb.active
-    ws.append(list(datos.values()))
-    wb.save(nombre_archivo)
+# Sample data for dropdowns
+funerarias_cali = [
+    "Funeraria Los Olivos",
+    "Funeraria La Piedad",
+    "Funeraria San Fernando",
+    "Funeraria La Merced",
+    "Funeraria San Vicente",
+    "Funeraria La Esperanza",
+    "Funeraria Jardines del Recuerdo",
+    "Funeraria San Judas Tadeo",
+    "Funeraria La Sagrada Familia",
+    "Funeraria La Ascensión",
+    "Otro"
+]
 
-# Función para enviar correo
-def enviar_correo(destinatario, datos):
-    mensaje = EmailMessage()
-    mensaje["Subject"] = "Gracias por tu solicitud - Jamasolvidad"
-    mensaje["From"] = EMAIL_REMITENTE
-    mensaje["To"] = destinatario
+cementerios_cali = [
+    "Cementerio Jardines del Recuerdo",
+    "Cementerio Los Cedros",
+    "Cementerio San Fernando",
+    "Cementerio Metropolitano del Sur",
+    "Cementerio Parque del Recuerdo",
+    "Cementerio Municipal de Cali",
+    "Cementerio La Piedad",
+    "Cementerio La Merced",
+    "Cementerio San Antonio",
+    "Cementerio San Vicente",
+    "Otro"
+]
 
-    cuerpo = f"""
-    Hola,
+formas_pago = [
+    "Bancolombia 74900017557",
+    "Nequi 3184666194",
+    "Daviplata 3184666194",
+    "Efectivo"
+]
 
-    Gracias por confiar en Jamasolvidad para rendir homenaje a tu ser querido. Estamos comprometidos a ayudarte a mantener viva su memoria de una forma emotiva y respetuosa.
-
-    Información del formulario:
-    """
-    for campo, valor in datos.items():
-        cuerpo += f"\n{campo}: {valor}"
-
-    cuerpo += "\n\nGracias por permitirnos hacer parte de este homenaje.\nEquipo Jamasolvidad"
-
-    mensaje.set_content(cuerpo)
-
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(EMAIL_REMITENTE, CLAVE_APP)
-        smtp.send_message(mensaje)
-
-# Función para validar campos
-def validar(campos):
-    errores = []
-    anio_actual = datetime.now().year
-
-    if not re.fullmatch(r"3\d{9}", campos["Teléfono"]):
-        errores.append("El teléfono debe tener 10 dígitos y comenzar con 3.")
-
-    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[a-zA-Z0-9]+", campos["Email"]):
-        errores.append("El correo electrónico no es válido.")
-
+def send_email(subject, body, to_emails):
     try:
-        nacimiento = int(campos["Año de nacimiento"])
-        fallecimiento = int(campos["Año de fallecimiento"])
-        if not (anio_actual - 110 <= nacimiento <= anio_actual):
-            errores.append("El año de nacimiento debe estar entre hace 110 años y el actual.")
-        if not (nacimiento <= fallecimiento <= anio_actual):
-            errores.append("El año de fallecimiento debe ser mayor o igual al de nacimiento y no mayor al actual.")
-    except ValueError:
-        errores.append("Los años deben ser números válidos.")
+        msg = MIMEMultipart()
+        msg['From'] = EMAIL_FROM
+        msg['To'] = ", ".join(to_emails)
+        msg['Subject'] = subject
+        
+        msg.attach(MIMEText(body, 'plain'))
+        
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(EMAIL_FROM, CLAVE_APP)
+        text = msg.as_string()
+        server.sendmail(EMAIL_FROM, to_emails, text)
+        server.quit()
+        return True
+    except Exception as e:
+        st.error(f"Error al enviar el correo: {e}")
+        return False
 
-    return errores
+def funeraria_form():
+    st.header("Formulario Funeraria")
+    
+    with st.form("funeraria_form"):
+        cedula = st.text_input("Cédula", max_chars=20)
+        nombre = st.text_input("Nombre y Apellido", max_chars=100)
+        telefono = st.text_input("Teléfono", max_chars=20)
+        email = st.text_input("Email", max_chars=100)
+        cliente = st.text_input("Cliente (Fallecido)", max_chars=100)
+        
+        current_year = datetime.now().year
+        min_year = current_year - 110
+        ano_nacimiento = st.number_input("Año de nacimiento", min_value=min_year, max_value=current_year, value=current_year-80)
+        ano_fallecimiento = st.number_input("Año de fallecimiento", min_value=ano_nacimiento, max_value=current_year, value=current_year)
+        
+        funeraria = st.selectbox("Funeraria", funerarias_cali)
+        vendedor = st.text_input("Vendedor", max_chars=100)
+        pago = st.selectbox("Forma de pago", formas_pago)
+        
+        submitted = st.form_submit_button("Enviar")
+        
+        if submitted:
+            # Validate required fields
+            if not all([cedula, nombre, telefono, email, cliente, funeraria, vendedor, pago]):
+                st.error("Por favor complete todos los campos obligatorios")
+                return
+                
+            # Prepare email content
+            subject = f"Nuevo formulario Funeraria - {nombre}"
+            body = f"""Gracias por elegir nuestro servicio para honrar la memoria de tu ser querido.  
+Estamos comprometidos a ayudarte a preservar su legado de una manera única y emotiva. A continuación, te explicamos los siguientes pasos:
+1. Recopilación de Contenido: Envíanos las fotos, videos y textos que deseas incluir en el código QR.
+2. Diseño y Personalización: Nos encargaremos de crear un espacio digital seguro y accesible.
+3. Instalación del Código QR: Una vez listo, te contactaremos para coordinar la instalación en la lápida.
 
-# Mostrar logo
-if os.path.exists("logo_jamasolvidad.jpg"):
-    with open("logo_jamasolvidad.jpg", "rb") as f:
-        logo_base64 = b64encode(f.read()).decode()
-    st.markdown(f"""
-        <div style="text-align:center;">
-            <img src="data:image/jpeg;base64,{logo_base64}" style="height: 100px;">
-        </div>
-    """, unsafe_allow_html=True)
+Datos Importantes:
+• El código QR es duradero y resistente a las condiciones climáticas.
+• Te proporcionaremos un enlace de acceso privado para que gestiones los contenidos.
 
-st.title("Bienvenido a Jamasolvidad")
+Si tienes alguna duda o necesitas asistencia, no dudes en contactarnos. Estamos aquí para ayudarte en cada paso.
+Gracias por confiar en nosotros para mantener viva su memoria. 
 
-# Botones de navegación
-opcion = st.radio("Seleccione una opción:", ["Inicio", "Formulario", "Salir"])
+Enviar material para el video al WhatsApp 3053629015 o al correo jamasolvidad@gmail.com
 
-if opcion == "Inicio":
-    st.write("Gracias por visitar Jamasolvidad. Por favor, seleccione una opción del menú.")
+Datos del formulario:
+Cédula: {cedula}
+Nombre y Apellido: {nombre}
+Teléfono: {telefono}
+Email: {email}
+Cliente (Fallecido): {cliente}
+Año de nacimiento: {ano_nacimiento}
+Año de fallecimiento: {ano_fallecimiento}
+Funeraria: {funeraria}
+Vendedor: {vendedor}
+Forma de pago: {pago}
+"""
+            
+            # Send email
+            if send_email(subject, body, [email, EMAIL_TO]):
+                st.success("Formulario enviado correctamente. Recibirás un correo de confirmación.")
+            else:
+                st.error("Error al enviar el formulario. Por favor intente nuevamente.")
 
-elif opcion == "Formulario":
-    st.header("Formulario de Solicitud")
+def cementerio_form():
+    st.header("Formulario Cementerio")
+    
+    with st.form("cementerio_form"):
+        cedula = st.text_input("Cédula", max_chars=20)
+        nombre = st.text_input("Nombre y Apellido", max_chars=100)
+        telefono = st.text_input("Teléfono", max_chars=20)
+        email = st.text_input("Email", max_chars=100)
+        cliente = st.text_input("Cliente (Fallecido)", max_chars=100)
+        
+        current_year = datetime.now().year
+        min_year = current_year - 110
+        ano_nacimiento = st.number_input("Año de nacimiento", min_value=min_year, max_value=current_year, value=current_year-80)
+        ano_fallecimiento = st.number_input("Año de fallecimiento", min_value=ano_nacimiento, max_value=current_year, value=current_year)
+        
+        cementerio = st.selectbox("Cementerio", cementerios_cali)
+        vendedor = st.text_input("Vendedor", max_chars=100)
+        pago = st.selectbox("Forma de pago", formas_pago)
+        
+        submitted = st.form_submit_button("Enviar")
+        
+        if submitted:
+            # Validate required fields
+            if not all([cedula, nombre, telefono, email, cliente, cementerio, vendedor, pago]):
+                st.error("Por favor complete todos los campos obligatorios")
+                return
+                
+            # Prepare email content
+            subject = f"Nuevo formulario Cementerio - {nombre}"
+            body = f"""Gracias por elegir nuestro servicio para honrar la memoria de tu ser querido.  
+Estamos comprometidos a ayudarte a preservar su legado de una manera única y emotiva. A continuación, te explicamos los siguientes pasos:
+1. Recopilación de Contenido: Envíanos las fotos, videos y textos que deseas incluir en el código QR.
+2. Diseño y Personalización: Nos encargaremos de crear un espacio digital seguro y accesible.
+3. Instalación del Código QR: Una vez listo, te contactaremos para coordinar la instalación en la lápida.
 
-    nombre = st.text_input("Nombre del fallecido")
-    nacimiento = st.text_input("Año de nacimiento")
-    fallecimiento = st.text_input("Año de fallecimiento")
-    telefono = st.text_input("Teléfono")
-    email = st.text_input("Email")
+Datos Importantes:
+• El código QR es duradero y resistente a las condiciones climáticas.
+• Te proporcionaremos un enlace de acceso privado para que gestiones los contenidos.
 
-    if st.button("Enviar solicitud"):
-        campos = {
-            "Nombre": nombre,
-            "Año de nacimiento": nacimiento,
-            "Año de fallecimiento": fallecimiento,
-            "Teléfono": telefono,
-            "Email": email
-        }
-        errores = validar(campos)
-        if errores:
-            st.error("\n".join(errores))
-        else:
-            guardar_en_excel("datos_jamasolvidad.xlsx", campos)
-            enviar_correo(email, campos)
-            st.success("✅ ¡Tu solicitud fue enviada exitosamente! Gracias por confiar en nosotros. Pronto nos pondremos en contacto contigo.")
+Si tienes alguna duda o necesitas asistencia, no dudes en contactarnos. Estamos aquí para ayudarte en cada paso.
+Gracias por confiar en nosotros para mantener viva su memoria. 
 
-elif opcion == "Salir":
-    st.write("Gracias por utilizar Jamasolvidad. ¡Hasta pronto!")
+Enviar material para el video al WhatsApp 3053629015 o al correo jamasolvidad@gmail.com
+
+Datos del formulario:
+Cédula: {cedula}
+Nombre y Apellido: {nombre}
+Teléfono: {telefono}
+Email: {email}
+Cliente (Fallecido): {cliente}
+Año de nacimiento: {ano_nacimiento}
+Año de fallecimiento: {ano_fallecimiento}
+Cementerio: {cementerio}
+Vendedor: {vendedor}
+Forma de pago: {pago}
+"""
+            
+            # Send email
+            if send_email(subject, body, [email, EMAIL_TO]):
+                st.success("Formulario enviado correctamente. Recibirás un correo de confirmación.")
+            else:
+                st.error("Error al enviar el formulario. Por favor intente nuevamente.")
+
+def main():
+    # Page configuration
+    st.set_page_config(page_title="Jamasolvida", page_icon=":rose:", layout="centered")
+    
+    # Header with logo and thumbnail
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        st.image("logo_jamasolvidad.jpg", width=150)
+    with col2:
+        st.image("video_thumbnail.jpg", width=300)
+    
+    st.title("Bienvenido a Jamasolvida")
+    st.write("Servicios conmemorativos para honrar la memoria de tus seres queridos")
+    
+    # Navigation buttons
+    option = st.radio("Seleccione una opción:", 
+                      ["Inicio", "Formulario Funeraria", "Formulario Cementerio", "Salir"],
+                      horizontal=True)
+    
+    if option == "Inicio":
+        st.write("Por favor seleccione uno de los formularios para continuar.")
+    elif option == "Formulario Funeraria":
+        funeraria_form()
+    elif option == "Formulario Cementerio":
+        cementerio_form()
+    elif option == "Salir":
+        st.stop()
+
+if __name__ == "__main__":
+    main()
