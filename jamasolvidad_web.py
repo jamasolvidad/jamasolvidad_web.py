@@ -274,7 +274,7 @@ def main():
             unsafe_allow_html=True
         )
     
-    st.title("Bienvenido a Jamasolvida")
+    st.title("Bienvenido a JamasolvidaD")
     st.write("Servicios conmemorativos para honrar la memoria de tus seres queridos")
     
     if st.session_state.show_form:
