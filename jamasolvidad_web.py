@@ -215,23 +215,60 @@ def main():
     if 'show_form' not in st.session_state:
         st.session_state.show_form = True
     
-    # Mostrar logo y miniatura de video clickable
+    # Mostrar logo y miniatura de video con botón play tipo YouTube
     col1, col2 = st.columns([1, 2])
     with col1:
         st.image("logo_jamasolvidad.jpg", width=150)
     with col2:
-        # Miniatura clickable con ícono de play
+        # Miniatura con botón play estilo YouTube
         st.markdown(
             f"""
-            <div style="position: relative;">
-                <a href="{VIDEO_URL}" target="_blank">
-                    <img src="video_thumbnail.jpg" width="300" style="border-radius: 5px;">
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="#ffffff" style="filter: drop-shadow(2px 2px 4px #000000);">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
-                        </svg>
-                    </div>
-                </a>
+            <style>
+                .video-container {{
+                    position: relative;
+                    width: 300px;
+                    cursor: pointer;
+                }}
+                .video-thumbnail {{
+                    width: 100%;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                    display: block;
+                }}
+                .play-button {{
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 60px;
+                    height: 60px;
+                    background-color: rgba(255, 0, 0, 0.8);
+                    border-radius: 50%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                    transition: all 0.3s ease;
+                }}
+                .play-button:hover {{
+                    background-color: rgba(255, 0, 0, 1);
+                    transform: translate(-50%, -50%) scale(1.1);
+                }}
+                .play-button::before {{
+                    content: "";
+                    display: block;
+                    width: 0;
+                    height: 0;
+                    border-top: 15px solid transparent;
+                    border-bottom: 15px solid transparent;
+                    border-left: 25px solid white;
+                    margin-left: 5px;
+                }}
+            </style>
+            
+            <div class="video-container" onclick="window.open('{VIDEO_URL}', '_blank')">
+                <img src="video_thumbnail.jpg" alt="Video thumbnail" class="video-thumbnail">
+                <div class="play-button"></div>
             </div>
             """,
             unsafe_allow_html=True
@@ -255,11 +292,14 @@ def main():
             st.stop()
     else:
         st.success("¡Gracias por completar el formulario! ¿Deseas realizar otra acción?")
-        if st.button("Volver al inicio"):
-            st.session_state.show_form = True
-            st.experimental_rerun()
-        if st.button("Salir"):
-            st.stop()
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Volver al inicio"):
+                st.session_state.show_form = True
+                st.experimental_rerun()
+        with col2:
+            if st.button("Salir"):
+                st.stop()
 
 if __name__ == "__main__":
     main()
